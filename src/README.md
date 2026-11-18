@@ -109,25 +109,6 @@ Caso a política do PowerShell impeça a ativação, não é necessário alterar
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m nltk.downloader punkt_tab
 ```
-
-### Linux e macOS
-
-**1. Crie e ative o ambiente virtual:**
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-**2. Instale as dependências e os dados do NLTK:**
-
-```bash
-python -m pip install -r requirements.txt
-python -m nltk.downloader punkt_tab
-```
-
-Em algumas distribuições Linux, pode ser necessário instalar o suporte do sistema operacional ao `venv` antes de criar o ambiente. No macOS, instale o Python 3 separadamente caso não esteja disponível.
-
 ### Configuração do OpenRouter
 
 Crie o arquivo `src/.env` com os valores abaixo. Ao carregar o grafo, o módulo de busca lê esse arquivo e disponibiliza as variáveis para os demais nós da mesma execução.
