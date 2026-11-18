@@ -80,6 +80,8 @@ O Low-Ship pode ser executado localmente em **Windows, Linux ou macOS**, desde q
 
 Os comandos abaixo devem ser executados **na raiz do projeto**, no diretório em que está o arquivo `requirements.txt`.
 
+O arquivo `requirements.txt` instala a biblioteca NLTK. O comando `python -m nltk.downloader punkt_tab` baixa os dados que ela usa para separar o texto em português em tokens na busca lexical. Execute esse download na preparação do ambiente.
+
 ### Windows com PowerShell
 
 **1. Crie o ambiente virtual:**
@@ -128,7 +130,7 @@ Em algumas distribuições Linux, pode ser necessário instalar o suporte do sis
 
 ### Configuração do OpenRouter
 
-Crie um arquivo chamado `.env` **na raiz do projeto**:
+Crie o arquivo `src/.env` com os valores abaixo. Ao carregar o grafo, o módulo de busca lê esse arquivo e disponibiliza as variáveis para os demais nós da mesma execução.
 
 ```dotenv
 API_KEY=sua_chave_do_openrouter
@@ -180,10 +182,10 @@ Cada envio inicia uma execução do grafo. Abrir as evidências ou os detalhes d
 Frotas_manual/
 ├── .streamlit/
 │   └── config.toml
-├── .env
 ├── requirements.txt
-├── README.md
 └── src/
+    ├── .env                 # configuração local
+    ├── README.md
     ├── app/
     │   ├── main.py
     │   ├── style.css
@@ -279,7 +281,7 @@ O estado final disponibiliza a resposta, os documentos recuperados, as seções 
 
 **Fonte de conhecimento.** O resultado depende do conteúdo disponível em `manual_operacoes.txt`. A aplicação não consulta automaticamente outros manuais, sistemas corporativos ou informações operacionais em tempo real.
 
-**Persistência.** O armazenamento vetorial é feito em memória. Uma nova inicialização do processo pode exigir a reconstrução do índice e novas chamadas ao serviço de embeddings.
+**Persistência.** O armazenamento vetorial é feito em memória. Cada busca híbrida reconstrói o índice e solicita os embeddings das seções, inclusive na segunda tentativa da mesma pergunta.
 
 **Custos e conectividade.** A execução depende do provedor configurado e pode gerar consumo de créditos de API. Mensagens de erro `402` normalmente indicam limite financeiro ou de tokens insuficiente para a solicitação.
 
