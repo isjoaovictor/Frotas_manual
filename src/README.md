@@ -123,13 +123,7 @@ O `builder.py` registra esses nós e define as conexões fixas e condicionais. O
 
 ### Como a decisão funciona
 
-<<<<<<< HEAD
-O arquivo `requirements.txt` instala a biblioteca NLTK. O comando `python -m nltk.downloader punkt_tab` baixa os dados que ela usa para separar o texto em português em tokens na busca lexical. Execute esse download na preparação do ambiente.
-
-### Windows com PowerShell
-=======
 A decisão segue uma ordem explícita:
->>>>>>> 4971a94 (docs: ajusta o README)
 
 1. **Conflito:** sinaliza necessidade de revisão humana. É um aviso, não uma aprovação externa implementada.
 2. **Suficiente:** permite a geração da resposta.
@@ -153,15 +147,6 @@ O manual é dividido pelos títulos de segundo nível (`##`) utilizando `Markdow
 
 Esses metadados também impedem que o mesmo trecho seja considerado um novo documento quando aparece nos dois mecanismos de busca.
 
-<<<<<<< HEAD
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m nltk.downloader punkt_tab
-```
-### Configuração do OpenRouter
-
-Crie o arquivo `src/.env` com os valores abaixo. Ao carregar o grafo, o módulo de busca lê esse arquivo e disponibiliza as variáveis para os demais nós da mesma execução.
-=======
 ### 4.2. Busca semântica
 
 A busca semântica utiliza `OpenAIEmbeddings` com o modelo `openai/text-embedding-3-small`, acessado pelo OpenRouter, e `InMemoryVectorStore` para localizar trechos por proximidade de significado.
@@ -179,7 +164,6 @@ Essa abordagem complementa a busca semântica especialmente quando a consulta co
 ### 4.4. Fusão dos rankings com RRF
 
 As pontuações retornadas pelos dois algoritmos não possuem necessariamente a mesma escala. Em vez de somá-las diretamente, o Low-Ship utiliza **Reciprocal Rank Fusion (RRF)**, que trabalha com a posição de cada documento em cada ranking:
->>>>>>> 4971a94 (docs: ajusta o README)
 
 \[
 RRF(d) = \sum_{r \in \{semântica,\,lexical\}} \frac{1}{60 + posição_r(d)}
@@ -257,12 +241,8 @@ Quando a verificação identifica um possível conflito, a aplicação sinaliza 
 
 ```text
 Frotas_manual/
-<<<<<<< HEAD
 ├── .streamlit/
 │   └── config.toml
-=======
-├── .env                       # Credenciais locais, não versionadas
->>>>>>> 4971a94 (docs: ajusta o README)
 ├── requirements.txt
 └── src/
     ├── .env                 # configuração local
@@ -352,7 +332,7 @@ O recurso `punkt_tab` é utilizado pelo NLTK na tokenização em português e pr
 
 ### 4. Configurar a API
 
-Crie o arquivo `.env` na **raiz** do projeto:
+Crie o arquivo `src/.env` (na pasta `src`) com os valores abaixo:
 
 ```dotenv
 API_KEY=sua_chave_do_openrouter
@@ -404,61 +384,19 @@ Abra **http://localhost:8501** caso o navegador não seja iniciado automaticamen
 
 ### Considerações técnicas
 
-O índice vetorial utilizado é **em memória**. Novas inicializações do processo podem exigir reconstrução dos embeddings e consumir chamadas adicionais à API. A recuperação depende do manual disponível e dos modelos configurados; não é uma consulta a dados marítimos em tempo real.
+O índice vetorial é **recriado em memória a cada execução da busca híbrida**, o que pode consumir chamadas adicionais à API de embeddings. A recuperação depende do manual disponível e dos modelos configurados; não é uma consulta a dados marítimos em tempo real.
 
-<<<<<<< HEAD
-1. **Semântica:** `OpenAIEmbeddings` transforma os textos e a pergunta em vetores, recuperados com `InMemoryVectorStore`.
-2. **Lexical:** BM25 classifica as seções pela presença e relevância dos termos, com tokenização em português pelo NLTK.
+O tratamento de informação ausente e a verificação de suficiência são mecanismos de contenção de respostas sem suporte, não uma garantia absoluta de precisão. Em aplicações operacionais, decisões críticas exigem validações adicionais.
 
-Os dois rankings são combinados por **Reciprocal Rank Fusion (RRF)**, que considera a posição dos documentos em cada busca. Isso evita tratar diretamente as pontuações vetoriais e lexicais como se estivessem na mesma escala. A identificação conjunta de `doc` e `posicao` evita duplicar um mesmo trecho no ranking final.
+**Persistência:** a indexação é refeita em memória a cada chamada de busca híbrida na implementação atual. Portanto, uma segunda tentativa também pode consumir chamadas adicionais à API de embeddings.
 
-### Verificação, expansão e rebusca
+**NLTK:** caso apareça `Resource punkt_tab not found`, execute `python -m nltk.downloader punkt_tab` no ambiente utilizado pela aplicação.
 
-A verificação avalia se o contexto sustenta a pergunta e classifica a evidência como `suficiente`, `insuficiente` ou `conflito`.
+**Custos e conectividade:** as chamadas ao OpenRouter podem consumir créditos. Nunca envie uma chave real de API em commits, prints ou logs publicados.
 
-Quando o contexto é insuficiente, o fluxo pode recuperar as seções imediatamente vizinhas de cada candidato. Persistindo a insuficiência, o sistema pode reformular a consulta e realizar uma segunda recuperação. **O limite é de duas buscas por pergunta**, controlado no estado do grafo.
+## 10. Referências técnicas
 
-As respostas são geradas com o conteúdo documental disponível para a execução. Quando não houver suporte suficiente, o fluxo informa que o dado não foi encontrado. Em caso de possível conflito, sinaliza necessidade de revisão humana, sem executar uma aprovação automática.
-
-### Fontes e rastreabilidade
-
-O estado final disponibiliza a resposta, os documentos recuperados, as seções disponíveis, a quantidade de buscas e a última consulta utilizada.
-
-**Importante:** as seções e os trechos retornados pelo backend representam o material recuperado e disponibilizado ao modelo. O sistema não identifica individualmente quais trechos fundamentaram cada afirmação gerada. A interface preserva essa distinção e não apresenta todos os documentos recuperados como citações comprovadas.
-
-## Tecnologias
-
-| Tecnologia | Aplicação |
-|---|---|
-| Python | Implementação do processamento e da interface. |
-| Streamlit | Aplicação web e gerenciamento de sessão. |
-| LangGraph | Orquestração condicional dos nós do RAG. |
-| LangChain | Objetos de documento, modelo, embeddings e armazenamento vetorial. |
-| OpenRouter | Acesso aos modelos de linguagem e embeddings. |
-| BM25 (`rank-bm25`) | Recuperação lexical. |
-| NLTK | Tokenização em português. |
-| Pydantic | Validação da avaliação estruturada do contexto. |
-| NumPy | Operações numéricas da recuperação vetorial em memória. |
-
-## Observações operacionais
-
-**Fonte de conhecimento.** O resultado depende do conteúdo disponível em `manual_operacoes.txt`. A aplicação não consulta automaticamente outros manuais, sistemas corporativos ou informações operacionais em tempo real.
-
-**Persistência.** O armazenamento vetorial é feito em memória. Cada busca híbrida reconstrói o índice e solicita os embeddings das seções, inclusive na segunda tentativa da mesma pergunta.
-
-**Custos e conectividade.** A execução depende do provedor configurado e pode gerar consumo de créditos de API. Mensagens de erro `402` normalmente indicam limite financeiro ou de tokens insuficiente para a solicitação.
-
-**NLTK.** Caso apareça `Resource punkt_tab not found`, execute novamente `python -m nltk.downloader punkt_tab` no ambiente Python utilizado pela aplicação.
-
-**Segurança.** Nunca inclua chaves reais em código, imagens, logs publicados ou commits. Se alguma chave for exposta, revogue-a no provedor antes de configurar outra.
-
-## Documentação técnica
-
-* [Streamlit: instalação e execução](https://docs.streamlit.io/get-started/installation/command-line)
 * [LangGraph: documentação oficial](https://docs.langchain.com/oss/python/langgraph/overview)
-* [LangChain: integrações e documentação Python](https://docs.langchain.com/oss/python/langchain/overview)
+* [LangChain: documentação oficial](https://docs.langchain.com/oss/python/langchain/overview)
 * [NLTK: instalação de dados](https://www.nltk.org/data.html)
 * [OpenRouter: documentação](https://openrouter.ai/docs)
-=======
-O tratamento de informação ausente e a verificação de suficiência são mecanismos de contenção de respostas sem suporte, não uma garantia absoluta de precisão. Em aplicações operacionais, decisões críticas exigiriam controles e validações adicionais.
->>>>>>> 4971a94 (docs: ajusta o README)
